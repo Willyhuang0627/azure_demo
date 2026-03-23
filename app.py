@@ -1,19 +1,23 @@
-from datetime import date
-import matplotlib.pyplot as plt
-import meteostat as ms
+from meteostat import Point
+from datetime import datetime
+import meteostat
+Daily = meteostat.daily.Daily
 
-# Specify location and time range
-POINT = ms.Point(25.0354294,121.5334188)  # Try with your location
-START = date(2022, 1, 1)
-END = date(2022, 12, 31)
+start = datetime(2020, 1, 1)
+end = datetime(2025, 12, 31)
 
-# Get nearby weather stations
-stations = ms.stations.nearby(POINT, limit=4)
+# 使用台中測站 ID（46749）
+data = Daily('46749', start, end)
+data = data.fetch()
 
-# Get daily data & perform interpolation
-ts = ms.daily(stations, START, END)
-df = ms.interpolate(ts, POINT).fetch()
-df.to_csv("data.csv")  # Save data to CSV file
-# Plot line chart including average, minimum and maximum temperature
-df.plot(y=[ms.Parameter.TEMP, ms.Parameter.TMIN, ms.Parameter.TMAX])
-plt.show()
+if data is None or data.empty:
+    print("❌ 沒有抓到資料")
+else:
+    print("✅ 成功抓到資料")
+    
+    cols = ['tavg', 'tmin', 'tmax']
+    if 'rhum' in data.columns:
+        cols.append('rhum')
+    
+    data = data[cols]
+    print(data.head())
